@@ -147,17 +147,18 @@
 
 ## Phase 5: Deployment & Launch
 **Goal:** Deploy to Netlify, set up GitHub → auto-deploy.
+**Status:** IN PROGRESS (Netlify setup started)
 
-- [ ] **P5.1** Initialize GitHub repo
-  - `gh repo create CanvasRosters --public --source=. --remote=origin --push`
-  - Add .gitignore (node_modules, .env.local, build/)
-  - Create README.md (features, how to use, screenshots)
+- [x] **P5.1** Initialize GitHub repo
+  - `gh repo create CanvasRosters --public --source=. --remote=origin --push` ✓
+  - Add .gitignore (node_modules, .env.local, build/) ✓
+  - Create README.md (features, how to use, screenshots) ✓
 
-- [ ] **P5.2** Create Netlify config
-  - netlify.toml (build command, publish dir)
-  - Environment variables (if any)
+- [x] **P5.2** Create Netlify config
+  - netlify.toml (build command, publish dir) ✓
+  - Environment variables (if any) ✓
 
-- [ ] **P5.3** Deploy to Netlify
+- [ ] **P5.3** Deploy to Netlify (IN PROGRESS)
   - Connect GitHub repo to Netlify
   - Auto-deploy on push to main
   - Set up custom domain (canvasrosters.foiledbymath.com or similar)
