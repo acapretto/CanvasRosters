@@ -11,3 +11,7 @@
 - [2026-04-01] Web App vs. Apps Script: These are complementary products, not competing. The web app is a free lead magnet (FBM brand, conversion funnel). A Google Apps Script version is a viable paid TpT SKU ($5-8) that sidesteps CORS entirely by running server-side. Build web app first, Apps Script second.
 
 - [2026-04-01] No AI needed here. The entire Canvas Rosters workflow is deterministic: fetch data, sort alphabetically, format cells. Evaluating AI for this type of tool is a distraction — programmatic logic is always correct for purely structural data transformation tasks.
+
+- [2026-04-02] Always proxy Canvas API calls through a Netlify serverless function rather than making direct browser requests. The try-direct-then-fallback pattern adds complexity for zero benefit — just always proxy. `netlify/functions/canvas-proxy.js` handles this; `canvasApi.js` POSTs to `/.netlify/functions/canvas-proxy`.
+
+- [2026-04-02] Vite's public/ directory is for static assets that get copied verbatim to dist/. An index.html in public/ will overwrite Vite's built output — a silent bug. Root-level index.html is always the correct location for the Vite entry point.
