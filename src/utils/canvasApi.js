@@ -1,40 +1,37 @@
 import axios from 'axios'
 
-const CANVAS_BASE_URL = 'https://canvas.instructure.com/api/v1'
+const PROXY_URL = '/.netlify/functions/canvas-proxy'
 
-export async function getClasses(token) {
+async function proxyRequest(token, domain, path, params) {
+  const response = await axios.post(PROXY_URL, { domain, token, path, params })
+  return response.data
+}
+
+export async function getClasses(token, domain) {
   try {
-    const response = await axios.get(`${CANVAS_BASE_URL}/courses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        per_page: 100,
-        enrollment_state: 'active',
-      },
+    return await proxyRequest(token, domain, '/api/v1/courses', {
+      per_page: 100,
+      enrollment_state: 'active',
     })
-    return response.data
   } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error('Invalid or expired Canvas token. Please check and try again.')
-    }
+    const status = error.response?.status
+    if (status === 401) throw new Error('Invalid or expired Canvas token. Please check and try again.')
+    if (status === 404) throw new Error('Canvas domain not found. Check your institution URL.')
+    if (!error.response) throw new Error('Network error. Check your internet connection or Canvas domain.')
     throw new Error(`Failed to fetch classes: ${error.message}`)
   }
 }
 
-export async function getStudents(token, courseId) {
+export async function getStudents(token, courseId, domain) {
   try {
-    const response = await axios.get(`${CANVAS_BASE_URL}/courses/${courseId}/students`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        per_page: 100,
-        include: ['enrollments'],
-      },
+    return await proxyRequest(token, domain, `/api/v1/courses/${courseId}/students`, {
+      per_page: 200,
+      include: ['enrollments'],
     })
-    return response.data
   } catch (error) {
+    const status = error.response?.status
+    if (status === 401) throw new Error('Canvas token expired. Please re-authenticate.')
+    if (status === 404) throw new Error('Class not found.')
     throw new Error(`Failed to fetch students: ${error.message}`)
   }
 }

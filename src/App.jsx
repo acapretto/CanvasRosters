@@ -1,55 +1,132 @@
 import { useState } from 'react'
-import './App.css'
+import TokenInput from './components/TokenInput'
+import ClassSelector from './components/ClassSelector'
+import SeatingConfig from './components/SeatingConfig'
+import ExportButton from './components/ExportButton'
+import './index.css'
+
+const STEPS = ['token', 'class', 'config', 'export']
+
+const STEP_LABELS = {
+  token: '1. Connect',
+  class: '2. Select Class',
+  config: '3. Seating',
+  export: '4. Download',
+}
 
 export default function App() {
-  const [step, setStep] = useState('token') // token, class, config, export
+  const [step, setStep] = useState('token')
+  const [token, setToken] = useState(null)
+  const [domain, setDomain] = useState(null)
+  const [classes, setClasses] = useState([])
+  const [selectedClass, setSelectedClass] = useState(null)
+  const [rows, setRows] = useState(null)
+  const [cols, setCols] = useState(null)
+
+  function handleAuthenticated(t, d, c) {
+    setToken(t)
+    setDomain(d)
+    setClasses(c)
+    setStep('class')
+  }
+
+  function handleClassSelected(course) {
+    setSelectedClass(course)
+    setStep('config')
+  }
+
+  function handleConfigured(r, c) {
+    setRows(r)
+    setCols(c)
+    setStep('export')
+  }
+
+  function handleResetToClass() {
+    setSelectedClass(null)
+    setRows(null)
+    setCols(null)
+    setStep('class')
+  }
+
+  function handleSignOut() {
+    setToken(null)
+    setDomain(null)
+    setClasses([])
+    setSelectedClass(null)
+    setRows(null)
+    setCols(null)
+    setStep('token')
+  }
+
+  const currentStepIndex = STEPS.indexOf(step)
 
   return (
     <div className="container">
       <header>
         <h1>Canvas Rosters</h1>
-        <p className="tagline">Free classroom rosters, seating charts & more</p>
+        <p className="tagline">Export class rosters, seating charts, sign-in sheets & grade books — free</p>
       </header>
+
+      {step !== 'token' && (
+        <nav className="step-indicator" aria-label="Progress">
+          {STEPS.map((s, i) => (
+            <div
+              key={s}
+              className={`step-dot${i < currentStepIndex ? ' completed' : ''}${s === step ? ' active' : ''}`}
+              aria-current={s === step ? 'step' : undefined}
+            >
+              <span className="step-dot-label">{STEP_LABELS[s]}</span>
+            </div>
+          ))}
+        </nav>
+      )}
 
       <main>
         {step === 'token' && (
-          <div className="step">
-            <h2>Step 1: Canvas API Token</h2>
-            <p>Paste your Canvas API token to get started.</p>
-            <input type="password" placeholder="Paste your Canvas API token here" />
-            <button onClick={() => setStep('class')}>Next: Select Class</button>
-          </div>
+          <TokenInput onAuthenticated={handleAuthenticated} />
         )}
 
         {step === 'class' && (
-          <div className="step">
-            <h2>Step 2: Select Class</h2>
-            <p>Choose which Canvas class you want to export.</p>
-            <button onClick={() => setStep('config')}>Next: Configure Seating</button>
-          </div>
+          <ClassSelector
+            classes={classes}
+            onSelect={handleClassSelected}
+            onBack={() => setStep('token')}
+          />
         )}
 
         {step === 'config' && (
-          <div className="step">
-            <h2>Step 3: Configure Seating Chart</h2>
-            <p>Choose rows and columns for your seating chart.</p>
-            <button onClick={() => setStep('export')}>Next: Export</button>
-          </div>
+          <SeatingConfig
+            selectedClass={selectedClass}
+            onConfigure={handleConfigured}
+            onBack={() => setStep('class')}
+          />
         )}
 
         {step === 'export' && (
-          <div className="step">
-            <h2>Step 4: Download Your Roster</h2>
-            <p>Your Excel file is ready!</p>
-            <button className="primary">📥 Download Roster.xlsx</button>
-          </div>
+          <ExportButton
+            token={token}
+            domain={domain}
+            selectedClass={selectedClass}
+            rows={rows}
+            cols={cols}
+            onBack={() => setStep('config')}
+            onReset={handleResetToClass}
+          />
         )}
       </main>
 
       <footer>
         <p>
-          Love Canvas Rosters? <a href="https://www.foiledbymath.com">Check out our other tools</a>
+          Love Canvas Rosters?{' '}
+          <a href="https://www.foiledbymath.com" target="_blank" rel="noopener noreferrer">
+            Check out our other math teacher tools
+          </a>
         </p>
+        {token && (
+          <button className="sign-out-link" onClick={handleSignOut}>
+            Sign out / clear token
+          </button>
+        )}
       </footer>
     </div>
   )

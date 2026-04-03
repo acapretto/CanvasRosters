@@ -128,13 +128,20 @@ function addSignInSheet(sheet, students) {
     (a.sortable_name || '').localeCompare(b.sortable_name || '')
   )
 
-  // Headers: Name + 14 days
+  // Headers: Name + 10 weekdays (Mon–Fri only, skipping Sat/Sun)
   const headers = ['Student Name']
   const startDate = new Date()
-  for (let i = 0; i < 14; i++) {
+  let weekdayCount = 0
+  let offset = 0
+  while (weekdayCount < 10) {
     const date = new Date(startDate)
-    date.setDate(date.getDate() + i)
-    headers.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+    date.setDate(date.getDate() + offset)
+    const day = date.getDay()
+    if (day !== 0 && day !== 6) {
+      headers.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }))
+      weekdayCount++
+    }
+    offset++
   }
 
   sheet.columns = headers.map((h, i) => ({
