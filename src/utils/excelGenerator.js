@@ -1,82 +1,79 @@
 import ExcelJS from 'exceljs'
 
 const NAVY = 'FF141D37'
-const PINK = 'FFEC5D82'
-const ORANGE = 'FFFF8C42'
 const CREAM = 'FFFAF7F0'
+const STRIPE_LIGHT = 'FFF5F5F5'
+const STRIPE_WHITE = 'FFFFFFFF'
 
-const headerStyle = {
-  fill: {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: NAVY },
-  },
-  font: {
-    bold: true,
-    color: { argb: 'FFFFFFFF' },
-    size: 12,
-  },
-  alignment: {
-    horizontal: 'center',
-    vertical: 'center',
-    wrapText: true,
-  },
-  border: {
-    top: { style: 'thin' },
-    left: { style: 'thin' },
-    bottom: { style: 'thin' },
-    right: { style: 'thin' },
-  },
+const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+const headerFont = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }
+const headerAlign = { horizontal: 'center', vertical: 'middle', wrapText: true }
+const thinBorder = {
+  top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+  left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+  bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+  right: { style: 'thin', color: { argb: 'FFCCCCCC' } },
 }
 
-const cellStyle = {
-  border: {
-    top: { style: 'thin' },
-    left: { style: 'thin' },
-    bottom: { style: 'thin' },
-    right: { style: 'thin' },
-  },
+function applyHeader(row) {
+  row.eachCell((cell) => {
+    cell.fill = headerFill
+    cell.font = headerFont
+    cell.alignment = headerAlign
+    cell.border = thinBorder
+  })
+  row.height = 28
 }
 
-export async function generateRosterExcel(students, className, rows, cols) {
+function applyStripes(sheet, startRow, endRow, colCount) {
+  for (let r = startRow; r <= endRow; r++) {
+    const row = sheet.getRow(r)
+    const isEven = (r - startRow) % 2 === 0
+    for (let c = 1; c <= colCount; c++) {
+      const cell = row.getCell(c)
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: isEven ? STRIPE_WHITE : STRIPE_LIGHT },
+      }
+      cell.border = thinBorder
+      cell.alignment = { vertical: 'middle' }
+    }
+  }
+}
+
+// seatingOrder is an array of student objects in the drag-drop arrangement order
+// If null, falls back to alphabetical
+export async function generateRosterExcel(students, className, rows, cols, seatingOrder) {
   const workbook = new ExcelJS.Workbook()
 
-  // Sheet 1: Roster
   const rosterSheet = workbook.addWorksheet('Roster')
   addRosterSheet(rosterSheet, students)
 
-  // Sheet 2: Seating Chart
   const seatingSheet = workbook.addWorksheet('Seating Chart')
-  addSeatingChartSheet(seatingSheet, students, rows, cols)
+  addSeatingChartSheet(seatingSheet, students, rows, cols, seatingOrder)
 
-  // Sheet 3: Sign-In Sheet
   const signInSheet = workbook.addWorksheet('Sign-In Sheet')
   addSignInSheet(signInSheet, students)
 
-  // Sheet 4: Grade Book
   const gradeBookSheet = workbook.addWorksheet('Grade Book')
   addGradeBookSheet(gradeBookSheet, students)
 
-  // Generate file
   const buffer = await workbook.xlsx.writeBuffer()
   return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
 }
 
 function addRosterSheet(sheet, students) {
   sheet.columns = [
-    { header: 'Last Name', key: 'lastName', width: 15 },
-    { header: 'First Name', key: 'firstName', width: 15 },
-    { header: 'Student ID', key: 'studentId', width: 12 },
-    { header: 'Email', key: 'email', width: 25 },
-    { header: 'Enrollment Status', key: 'status', width: 15 },
+    { header: 'Last Name', key: 'lastName', width: 18 },
+    { header: 'First Name', key: 'firstName', width: 18 },
+    { header: 'Student ID', key: 'studentId', width: 14 },
+    { header: 'Email', key: 'email', width: 30 },
+    { header: 'Status', key: 'status', width: 14 },
   ]
 
-  // Style header
-  sheet.getRow(1).eachCell((cell) => {
-    Object.assign(cell, headerStyle)
-  })
+  applyHeader(sheet.getRow(1))
 
-  // Add data
   students.forEach((student) => {
     sheet.addRow({
       lastName: student.sortable_name?.split(', ')[0] || '',
@@ -87,39 +84,70 @@ function addRosterSheet(sheet, students) {
     })
   })
 
-  // Freeze header
+  applyStripes(sheet, 2, students.length + 1, 5)
   sheet.views = [{ state: 'frozen', ySplit: 1 }]
 }
 
-function addSeatingChartSheet(sheet, students, rows, cols) {
-  // Sort students alphabetically
-  const sorted = [...students].sort((a, b) =>
+function addSeatingChartSheet(sheet, students, rows, cols, seatingOrder) {
+  const ordered = seatingOrder || [...students].sort((a, b) =>
     (a.sortable_name || '').localeCompare(b.sortable_name || '')
   )
 
-  sheet.columns = Array.from({ length: cols }, (_, i) => ({
-    header: `Col ${i + 1}`,
-    key: `col${i}`,
-    width: 20,
-  }))
+  // No column headers — the whole sheet is the visual grid
+  for (let c = 1; c <= cols; c++) {
+    sheet.getColumn(c).width = 18
+  }
 
-  // Style header
-  sheet.getRow(1).eachCell((cell) => {
-    Object.assign(cell, headerStyle)
-  })
+  const deskFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CREAM } }
+  const deskBorder = {
+    top: { style: 'medium', color: { argb: NAVY } },
+    left: { style: 'medium', color: { argb: NAVY } },
+    bottom: { style: 'medium', color: { argb: NAVY } },
+    right: { style: 'medium', color: { argb: NAVY } },
+  }
+  const deskFont = { size: 10, color: { argb: 'FF333333' } }
+  const deskAlign = { horizontal: 'center', vertical: 'middle', wrapText: true }
 
-  // Fill grid with student names
+  // Title row
+  const titleRow = sheet.getRow(1)
+  titleRow.getCell(1).value = 'SEATING CHART'
+  titleRow.getCell(1).font = { bold: true, size: 14, color: { argb: NAVY } }
+  titleRow.height = 30
+
+  // Build desk grid starting at row 3
   let studentIndex = 0
   for (let r = 0; r < rows; r++) {
-    const row = sheet.addRow()
-    for (let c = 0; c < cols; c++) {
-      if (studentIndex < sorted.length) {
-        const cell = row.getCell(c + 1)
-        cell.value = sorted[studentIndex].name
-        Object.assign(cell, cellStyle)
-        studentIndex++
-      }
+    const excelRow = sheet.getRow(r * 2 + 3) // double-spaced rows for square look
+    excelRow.height = 50 // tall rows = square cells
+
+    // Spacer row between desk rows
+    if (r < rows - 1) {
+      sheet.getRow(r * 2 + 4).height = 12
     }
+
+    for (let c = 0; c < cols; c++) {
+      const cell = excelRow.getCell(c + 1)
+      if (studentIndex < ordered.length) {
+        cell.value = ordered[studentIndex].name || ''
+        studentIndex++
+      } else {
+        cell.value = ''
+      }
+      cell.fill = deskFill
+      cell.border = deskBorder
+      cell.font = deskFont
+      cell.alignment = deskAlign
+    }
+  }
+
+  // Label at bottom
+  const footerRowNum = rows * 2 + 4
+  const footerRow = sheet.getRow(footerRowNum)
+  footerRow.getCell(1).value = 'FRONT OF ROOM'
+  footerRow.getCell(1).font = { bold: true, size: 11, color: { argb: 'FF999999' } }
+  footerRow.getCell(1).alignment = { horizontal: 'center' }
+  if (cols > 1) {
+    sheet.mergeCells(footerRowNum, 1, footerRowNum, cols)
   }
 }
 
@@ -128,7 +156,6 @@ function addSignInSheet(sheet, students) {
     (a.sortable_name || '').localeCompare(b.sortable_name || '')
   )
 
-  // Headers: Name + 10 weekdays (Mon–Fri only, skipping Sat/Sun)
   const headers = ['Student Name']
   const startDate = new Date()
   let weekdayCount = 0
@@ -147,22 +174,17 @@ function addSignInSheet(sheet, students) {
   sheet.columns = headers.map((h, i) => ({
     header: h,
     key: `col${i}`,
-    width: 12,
+    width: i === 0 ? 22 : 14,
   }))
 
-  // Style header
-  sheet.getRow(1).eachCell((cell) => {
-    Object.assign(cell, headerStyle)
-  })
+  applyHeader(sheet.getRow(1))
 
-  // Add student names
   sorted.forEach((student) => {
-    sheet.addRow({
-      col0: student.name,
-    })
+    const row = sheet.addRow({ col0: student.name })
+    row.height = 24
   })
 
-  // Freeze header + name column
+  applyStripes(sheet, 2, sorted.length + 1, headers.length)
   sheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }]
 }
 
@@ -171,27 +193,21 @@ function addGradeBookSheet(sheet, students) {
     (a.sortable_name || '').localeCompare(b.sortable_name || '')
   )
 
-  // Columns: Name + 10 empty grade columns
   const headers = ['Student Name', ...Array.from({ length: 10 }, (_, i) => `Assignment ${i + 1}`)]
 
-  sheet.columns = headers.map((h) => ({
+  sheet.columns = headers.map((h, i) => ({
     header: h,
     key: h,
-    width: 15,
+    width: i === 0 ? 22 : 14,
   }))
 
-  // Style header
-  sheet.getRow(1).eachCell((cell) => {
-    Object.assign(cell, headerStyle)
-  })
+  applyHeader(sheet.getRow(1))
 
-  // Add student names
   sorted.forEach((student) => {
-    sheet.addRow({
-      'Student Name': student.name,
-    })
+    const row = sheet.addRow({ 'Student Name': student.name })
+    row.height = 24
   })
 
-  // Freeze header + name column
+  applyStripes(sheet, 2, sorted.length + 1, headers.length)
   sheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }]
 }

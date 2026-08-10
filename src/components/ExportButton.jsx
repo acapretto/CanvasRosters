@@ -1,29 +1,18 @@
 import { useState } from 'react'
-import { getStudents } from '../utils/canvasApi'
 import { generateRosterExcel } from '../utils/excelGenerator'
 
-export default function ExportButton({ token, domain, selectedClass, rows, cols, onBack, onReset }) {
+export default function ExportButton({ token, domain, selectedClass, rows, cols, allStudents, seatingOrder, onBack, onReset }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [studentCount, setStudentCount] = useState(null)
 
   async function handleExport() {
     setLoading(true)
     setError('')
     setSuccess(false)
-    setStudentCount(null)
 
     try {
-      const students = await getStudents(token, selectedClass.id, domain)
-
-      if (students.length === 0) {
-        setError('No students found in this class. Check the class enrollment in Canvas.')
-        return
-      }
-
-      setStudentCount(students.length)
-      const blob = await generateRosterExcel(students, selectedClass.name, rows, cols)
+      const blob = await generateRosterExcel(allStudents, selectedClass.name, rows, cols, seatingOrder)
 
       const safeName = selectedClass.name.replace(/[^a-z0-9\s]/gi, '').trim().replace(/\s+/g, '_')
       const filename = `${safeName}_Rosters.xlsx`
@@ -65,7 +54,7 @@ export default function ExportButton({ token, domain, selectedClass, rows, cols,
 
       {success && (
         <div className="success-message" role="status">
-          Downloaded successfully! {studentCount} students across 4 sheets.
+          Downloaded successfully! {allStudents.length} students across 4 sheets.
           <br />
           <span className="success-hint">Need another class? Use the buttons below.</span>
         </div>
