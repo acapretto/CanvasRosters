@@ -1,27 +1,47 @@
 import { useState } from 'react'
+import SourcePicker from './components/SourcePicker'
+import PasteRoster from './components/PasteRoster'
 import TokenInput from './components/TokenInput'
 import ClassSelector from './components/ClassSelector'
 import SeatingConfig from './components/SeatingConfig'
+import SeatingArrange from './components/SeatingArrange'
 import ExportButton from './components/ExportButton'
 import './index.css'
 
-const STEPS = ['token', 'class', 'config', 'export']
+// Two routes to the same seating/export flow. Canvas fills in student IDs and
+// emails automatically; the manual path works for any LMS, or none at all.
+const FLOWS = {
+  canvas: ['source', 'token', 'class', 'config', 'arrange', 'export'],
+  manual: ['source', 'paste', 'config', 'arrange', 'export'],
+}
 
 const STEP_LABELS = {
-  token: '1. Connect',
-  class: '2. Select Class',
-  config: '3. Seating',
-  export: '4. Download',
+  source: 'Start',
+  token: 'Connect',
+  class: 'Select Class',
+  paste: 'Class List',
+  config: 'Grid Size',
+  arrange: 'Arrange',
+  export: 'Download',
 }
 
 export default function App() {
-  const [step, setStep] = useState('token')
+  const [source, setSource] = useState(null) // 'canvas' | 'manual'
+  const [step, setStep] = useState('source')
   const [token, setToken] = useState(null)
   const [domain, setDomain] = useState(null)
   const [classes, setClasses] = useState([])
   const [selectedClass, setSelectedClass] = useState(null)
+  const [manualStudents, setManualStudents] = useState(null)
   const [rows, setRows] = useState(null)
   const [cols, setCols] = useState(null)
+  const [allStudents, setAllStudents] = useState(null)
+  const [seatingOrder, setSeatingOrder] = useState(null)
+
+  function handlePickSource(which) {
+    setSource(which)
+    setStep(which === 'canvas' ? 'token' : 'paste')
+  }
 
   function handleAuthenticated(t, d, c) {
     setToken(t)
@@ -35,55 +55,95 @@ export default function App() {
     setStep('config')
   }
 
+  function handleRosterReady(students, className) {
+    setManualStudents(students)
+    setSelectedClass({ id: 'manual', name: className })
+    setStep('config')
+  }
+
   function handleConfigured(r, c) {
     setRows(r)
     setCols(c)
+    setStep('arrange')
+  }
+
+  function handleArranged(students, ordered) {
+    setAllStudents(students)
+    setSeatingOrder(ordered)
     setStep('export')
   }
 
-  function handleResetToClass() {
-    setSelectedClass(null)
+  function clearSeating() {
     setRows(null)
     setCols(null)
-    setStep('class')
+    setAllStudents(null)
+    setSeatingOrder(null)
   }
 
-  function handleSignOut() {
+  // "Export a different class" means the class picker on Canvas, but the paste
+  // screen on the manual path — there is no list to pick from.
+  function handleResetToClass() {
+    clearSeating()
+    if (source === 'canvas') {
+      setSelectedClass(null)
+      setStep('class')
+    } else {
+      setStep('paste')
+    }
+  }
+
+  function handleStartOver() {
+    clearSeating()
+    setSource(null)
     setToken(null)
     setDomain(null)
     setClasses([])
     setSelectedClass(null)
-    setRows(null)
-    setCols(null)
-    setStep('token')
+    setManualStudents(null)
+    setStep('source')
   }
 
-  const currentStepIndex = STEPS.indexOf(step)
+  const steps = FLOWS[source] || FLOWS.canvas
+  const currentStepIndex = steps.indexOf(step)
 
   return (
     <div className="container">
       <header>
         <h1>Canvas Rosters</h1>
-        <p className="tagline">Export class rosters, seating charts, sign-in sheets & grade books — free</p>
+        <p className="tagline">Export class rosters, seating charts, sign-in sheets &amp; grade books — free</p>
       </header>
 
-      {step !== 'token' && (
+      {step !== 'source' && (
         <nav className="step-indicator" aria-label="Progress">
-          {STEPS.map((s, i) => (
-            <div
-              key={s}
-              className={`step-dot${i < currentStepIndex ? ' completed' : ''}${s === step ? ' active' : ''}`}
-              aria-current={s === step ? 'step' : undefined}
-            >
-              <span className="step-dot-label">{STEP_LABELS[s]}</span>
-            </div>
-          ))}
+          {steps.slice(1).map((s) => {
+            const i = steps.indexOf(s)
+            return (
+              <div
+                key={s}
+                className={`step-dot${i < currentStepIndex ? ' completed' : ''}${s === step ? ' active' : ''}`}
+                aria-current={s === step ? 'step' : undefined}
+              >
+                <span className="step-dot-label">{STEP_LABELS[s]}</span>
+              </div>
+            )
+          })}
         </nav>
       )}
 
       <main>
+        {step === 'source' && (
+          <SourcePicker onPick={handlePickSource} />
+        )}
+
         {step === 'token' && (
           <TokenInput onAuthenticated={handleAuthenticated} />
+        )}
+
+        {step === 'paste' && (
+          <PasteRoster
+            onReady={handleRosterReady}
+            onBack={handleStartOver}
+          />
         )}
 
         {step === 'class' && (
@@ -98,7 +158,20 @@ export default function App() {
           <SeatingConfig
             selectedClass={selectedClass}
             onConfigure={handleConfigured}
-            onBack={() => setStep('class')}
+            onBack={() => setStep(source === 'canvas' ? 'class' : 'paste')}
+          />
+        )}
+
+        {step === 'arrange' && (
+          <SeatingArrange
+            token={token}
+            domain={domain}
+            selectedClass={selectedClass}
+            providedStudents={manualStudents}
+            rows={rows}
+            cols={cols}
+            onArranged={handleArranged}
+            onBack={() => setStep('config')}
           />
         )}
 
@@ -109,7 +182,9 @@ export default function App() {
             selectedClass={selectedClass}
             rows={rows}
             cols={cols}
-            onBack={() => setStep('config')}
+            allStudents={allStudents}
+            seatingOrder={seatingOrder}
+            onBack={() => setStep('arrange')}
             onReset={handleResetToClass}
           />
         )}
@@ -122,9 +197,9 @@ export default function App() {
             Check out our other math teacher tools
           </a>
         </p>
-        {token && (
-          <button className="sign-out-link" onClick={handleSignOut}>
-            Sign out / clear token
+        {step !== 'source' && (
+          <button className="sign-out-link" onClick={handleStartOver}>
+            {token ? 'Sign out / clear token' : 'Start over'}
           </button>
         )}
       </footer>
