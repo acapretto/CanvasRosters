@@ -13,11 +13,12 @@
  */
 
 const HEADER_HINTS = {
-  last: ['last name', 'last', 'surname', 'family name', 'lastname'],
-  first: ['first name', 'first', 'given name', 'firstname'],
+  // 'familyname'/'givenname' (no space) cover OneRoster CSV headers (Clever, ClassLink)
+  last: ['last name', 'last', 'surname', 'family name', 'lastname', 'familyname'],
+  first: ['first name', 'first', 'given name', 'firstname', 'givenname'],
   full: ['name', 'student', 'student name', 'full name', 'display name'],
   email: ['email', 'e-mail', 'email address', 'student email'],
-  id: ['id', 'student id', 'sis id', 'sis user id', 'number'],
+  id: ['id', 'student id', 'sis id', 'sis user id', 'number', 'sourcedid'],
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

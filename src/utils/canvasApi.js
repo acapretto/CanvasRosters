@@ -24,9 +24,14 @@ export async function getClasses(token, domain) {
 
 export async function getStudents(token, courseId, domain) {
   try {
-    return await proxyRequest(token, domain, `/api/v1/courses/${courseId}/students`, {
+    // The legacy /students endpoint never returns email regardless of `include`.
+    // /users with enrollment_type + include[]=email,enrollments is the documented
+    // way to get both — email still requires the caller to have Canvas's
+    // "read_email_addresses" permission (teachers on their own course have it).
+    return await proxyRequest(token, domain, `/api/v1/courses/${courseId}/users`, {
       per_page: 200,
-      include: ['enrollments'],
+      enrollment_type: ['student'],
+      include: ['enrollments', 'email'],
     })
   } catch (error) {
     const status = error.response?.status

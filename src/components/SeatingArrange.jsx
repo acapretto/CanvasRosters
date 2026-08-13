@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getStudents } from '../utils/canvasApi'
 
-export default function SeatingArrange({ token, domain, selectedClass, providedStudents, rows, cols, onArranged, onBack }) {
+export default function SeatingArrange({ token, domain, selectedClass, providedStudents, rows, cols, onArranged, onBack, onReauth }) {
   const [students, setStudents] = useState(null)
   const [grid, setGrid] = useState([]) // flat array of length rows*cols, each slot = student obj or null
   const [unplaced, setUnplaced] = useState([]) // students not on the grid
@@ -129,11 +129,17 @@ export default function SeatingArrange({ token, domain, selectedClass, providedS
   }
 
   if (error) {
+    const isExpiredToken = !providedStudents && /token|unauthorized|401/i.test(error)
     return (
       <div className="step">
         <h2>Arrange Seating</h2>
         <div className="error-message" role="alert">{error}</div>
-        <button className="secondary" onClick={onBack}>Back</button>
+        <div className="button-row">
+          {isExpiredToken && (
+            <button className="primary" onClick={onReauth}>Reconnect to Canvas</button>
+          )}
+          <button className="secondary" onClick={onBack}>Back</button>
+        </div>
       </div>
     )
   }

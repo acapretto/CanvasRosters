@@ -92,6 +92,18 @@ export default function App() {
     }
   }
 
+  // Canvas tokens can expire mid-session (they have a configurable lifetime and can
+  // be revoked). When that happens deep in the flow, send the user straight back to
+  // the token step instead of a dead end — clearSeating() plus a fresh 'token' step.
+  function handleReauth() {
+    clearSeating()
+    setToken(null)
+    setDomain(null)
+    setClasses([])
+    setSelectedClass(null)
+    setStep('token')
+  }
+
   function handleStartOver() {
     clearSeating()
     setSource(null)
@@ -109,8 +121,15 @@ export default function App() {
   return (
     <div className="container">
       <header>
+        <img src="/fbm-logo.png" alt="Foiled By Math" className="brand-logo" />
         <h1>Canvas Rosters</h1>
         <p className="tagline">Export class rosters, seating charts, sign-in sheets &amp; grade books — free</p>
+        <p className="brand-byline">
+          By{' '}
+          <a href="https://www.foiledbymath.com" target="_blank" rel="noopener noreferrer">
+            Foiled By Math
+          </a>
+        </p>
       </header>
 
       {step !== 'source' && (
@@ -172,6 +191,7 @@ export default function App() {
             cols={cols}
             onArranged={handleArranged}
             onBack={() => setStep('config')}
+            onReauth={handleReauth}
           />
         )}
 
@@ -192,6 +212,7 @@ export default function App() {
 
       <footer>
         <p>
+          <img src="/fbm-logo.png" alt="" className="footer-logo" />
           Love Canvas Rosters?{' '}
           <a href="https://www.foiledbymath.com" target="_blank" rel="noopener noreferrer">
             Check out our other math teacher tools

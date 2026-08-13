@@ -1,3 +1,22 @@
+/* FBM Brand Fonts — Clash Display (headers) */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Medium.woff2') format('woff2'),
+       url('/fonts/ClashDisplay-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Semibold.woff2') format('woff2'),
+       url('/fonts/ClashDisplay-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* FBM Brand Colors */
 :root {
   --navy: #141D37;
@@ -91,6 +110,13 @@ header {
   margin-bottom: 60px;
 }
 
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+}
+
 header h1 {
   font-size: 48px;
   margin-bottom: 10px;
@@ -103,6 +129,30 @@ header h1 {
 .tagline {
   font-size: 20px;
   color: #666;
+}
+
+.brand-byline {
+  font-size: 14px;
+  color: #999;
+  margin-top: 6px;
+}
+
+.brand-byline a {
+  color: #999;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.brand-byline a:hover {
+  color: var(--pink);
+}
+
+footer .footer-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 6px;
 }
 
 main {
