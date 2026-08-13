@@ -121,15 +121,18 @@ export default function App() {
   return (
     <div className="container">
       <header>
-        <img src="/fbm-logo.png" alt="Foiled By Math" className="brand-logo" />
+        <a
+          href="https://www.foiledbymath.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="brand-lockup"
+        >
+          <img src="/fbm-logo.png" alt="" className="brand-logo" />
+          <span className="brand-name">Foiled By Math</span>
+        </a>
+        <p className="brand-tagline">Faster Planning. Better Materials. Fewer Late Nights.</p>
         <h1>Canvas Rosters</h1>
         <p className="tagline">Export class rosters, seating charts, sign-in sheets &amp; grade books — free</p>
-        <p className="brand-byline">
-          By{' '}
-          <a href="https://www.foiledbymath.com" target="_blank" rel="noopener noreferrer">
-            Foiled By Math
-          </a>
-        </p>
       </header>
 
       {step !== 'source' && (
@@ -211,8 +214,17 @@ export default function App() {
       </main>
 
       <footer>
-        <p>
+        <a
+          href="https://www.foiledbymath.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="footer-brand"
+        >
           <img src="/fbm-logo.png" alt="" className="footer-logo" />
+          <span className="footer-brand-name">Foiled By Math</span>
+        </a>
+        <p className="footer-tagline">Faster Planning. Better Materials. Fewer Late Nights.</p>
+        <p className="footer-cta">
           Love Canvas Rosters?{' '}
           <a href="https://www.foiledbymath.com" target="_blank" rel="noopener noreferrer">
             Check out our other math teacher tools

@@ -110,11 +110,39 @@ header {
   margin-bottom: 60px;
 }
 
+/* Brand lockup — logo + wordmark, mirrors the nav/footer treatment on foiledbymath.com */
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
 .brand-logo {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 12px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+}
+
+.brand-name {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4pt;
+  color: var(--pink);
+}
+
+.brand-lockup:hover .brand-name {
+  text-decoration: underline;
+}
+
+.brand-tagline {
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  margin-top: 6px;
+  margin-bottom: 28px;
 }
 
 header h1 {
@@ -131,28 +159,41 @@ header h1 {
   color: #666;
 }
 
-.brand-byline {
-  font-size: 14px;
-  color: #999;
-  margin-top: 6px;
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
 }
 
-.brand-byline a {
-  color: #999;
+.footer-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.footer-brand-name {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
   font-weight: 600;
-  text-decoration: underline;
-}
-
-.brand-byline a:hover {
+  letter-spacing: -0.4pt;
   color: var(--pink);
 }
 
-footer .footer-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  vertical-align: middle;
-  margin-right: 6px;
+.footer-brand:hover .footer-brand-name {
+  text-decoration: underline;
+}
+
+.footer-tagline {
+  font-size: 15px;
+  font-weight: 500;
+  color: #888;
+  margin-top: 6px;
+}
+
+.footer-cta {
+  margin-top: 20px;
 }
 
 main {
@@ -199,7 +240,11 @@ footer {
 }
 
 footer p {
-  font-size: 14px;
+  font-size: 16px;
+}
+
+.footer-cta a {
+  font-weight: 600;
 }
 
 /* ---- Form elements ---- */
