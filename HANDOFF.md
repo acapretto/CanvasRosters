@@ -1,7 +1,13 @@
 # HANDOFF — CanvasRosters (Canvas Roster Export)
-**Updated:** 2026-08-10
+**Updated:** 2026-08-21
 
-## Last Session
+## Last Session (2026-08-21)
+Added the FBM feedback widget to `index.html` (slug `canvas-rosters`). Self-injecting floating
+"Feedback" button, posts to the shared `product_feedback` Supabase table. Change is in the working
+tree only; needs rebuild + Netlify deploy to go live. See global memory
+`reference_feedback_widget.md` for the full reference.
+
+## Previous Session (2026-08-10)
 Made the tool work **without Canvas**, which was the single biggest limit on its reach.
 
 - Added a source picker: connect Canvas (the existing token flow) **or** paste/upload a class list.
